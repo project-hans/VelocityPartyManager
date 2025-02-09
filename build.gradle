@@ -22,6 +22,7 @@ compileOnly "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
     // Javalin: A lightweight web framework for creating REST endpoints.
     implementation 'io.javalin:javalin:5.6.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.18.2"
 }
 
 def targetJavaVersion = 17

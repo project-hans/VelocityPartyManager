@@ -7,7 +7,7 @@ class Party(leaderUUID: UUID) {
     var uuid: UUID = UUID.randomUUID()
     var name: String? = null
     var members: MutableList<UUID> = ArrayList()
-    private var leader: UUID? = null
+    var leader: UUID? = null
 
     init {
         addMember(leaderUUID)
@@ -15,7 +15,7 @@ class Party(leaderUUID: UUID) {
     }
 
     fun setLeader(uuid: UUID) {
-        if (!members.contains(uuid)){
+        if (!members.contains(uuid)) {
             throw IllegalArgumentException("UUID $uuid of leader does not exist in member list")
         }
         leader = uuid
@@ -25,29 +25,26 @@ class Party(leaderUUID: UUID) {
         return uuid
     }
 
-    fun getLeaderUUID(): UUID {
-        return leader!!
-    }
+    fun getLeaderUUID(): UUID = leader!!
 
     fun getMembers(): List<UUID> {
         return ArrayList(members)
     }
 
     fun addMember(uuid: UUID) {
-        if (members.contains(uuid)){
+        if (members.contains(uuid)) {
             throw IllegalArgumentException("UUID $uuid does already exist in member list")
         }
         members.add(uuid)
     }
 
     fun removeMember(uuid: UUID) {
-        if (!members.contains(uuid)){
+        if (!members.contains(uuid)) {
             throw IllegalArgumentException("UUID $uuid does not exist in member list")
         }
         members.remove(uuid)
+        if ((leader == uuid) && (members.size > 1)) {
+            leader = members[0]
+        }
     }
-
-
-
-
 }

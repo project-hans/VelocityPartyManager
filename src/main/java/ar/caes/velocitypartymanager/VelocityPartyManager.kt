@@ -18,21 +18,36 @@ import java.util.*
 )
 class VelocityPartyManager @Inject constructor(private val server: ProxyServer, private val logger: Logger) {
 
+    // Map of PartyUUID to Party
     private val parties: MutableMap<UUID, Party> = mutableMapOf()
 
+    // TODO: get port through config or ENV var
+    private val restServer = RestServer(this, 7000)
+
     // Map of PlayerUUID to PartyUUID
-    private val playersInParty: MutableMap<UUID, UUID> = mutableMapOf()
+    private val playerToParty: MutableMap<UUID, UUID> = mutableMapOf()
 
     init {
-        val restServer = RestServer(this, 7000)
-        restServer.start()
+
+
     }
 
-    fun transferParty(partyUUID: UUID, serverAlias: String?) {
+    private fun partyElevatedPrivileges(playerUUID: UUID): Party {
+        val partyUUID = getPartyUUIDForPlayer(playerUUID)
         if (!parties.containsKey(partyUUID)) {
             throw IllegalStateException("Party $partyUUID does not exist")
         }
-        var uuids = parties[partyUUID]!!.getMembers()
+        val party = parties[partyUUID]!!
+        if (party.leader != playerUUID) {
+            throw IllegalAccessException("Player $playerUUID is not the Leader")
+        }
+
+        return party
+    }
+
+    fun transferParty(playerUUID: UUID, serverAlias: String?) {
+        val party = partyElevatedPrivileges(playerUUID)
+        val uuids = party.getMembers()
         server.getServer(serverAlias).ifPresent { targetServer: RegisteredServer? ->
             for (u in uuids) {
                 server.getPlayer(u).ifPresent { player: Player -> player.createConnectionRequest(targetServer) }
@@ -44,51 +59,62 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
         if (!parties.containsKey(partyUUID)) {
             throw IllegalStateException("Party $partyUUID does not exist")
         }
-        if(playersInParty.containsKey(playerUUID)) {
+        if (playerToParty.containsKey(playerUUID)) {
             throw IllegalStateException("Player $playerUUID already in a party")
         }
         parties[partyUUID]!!.addMember(playerUUID)
-        playersInParty[playerUUID] = partyUUID
+        playerToParty[playerUUID] = partyUUID
     }
 
     fun leaveParty(playerUUID: UUID) {
-        if(!playersInParty.containsKey(playerUUID)) {
+        if (!playerToParty.containsKey(playerUUID)) {
             throw IllegalStateException("Player $playerUUID not in any Party")
         }
-        val party = parties[playersInParty[playerUUID]]!!
+        val party = parties[playerToParty[playerUUID]]!!
         party.removeMember(playerUUID)
+        if (party.members.size == 0) {
+            // Works because leader field is still set even with no members
+            unregisterParty(playerUUID)
+        }
     }
 
-    fun registerParty(leaderUuid: UUID) {
-        if(leaderUuid in playersInParty.keys) {
+    fun registerParty(leaderUuid: UUID): UUID {
+        if (leaderUuid in playerToParty.keys) {
             throw IllegalStateException("Leader $leaderUuid already part of a party")
         }
         for (party in parties.values) {
-            if(party.getLeaderUUID() == leaderUuid) {
+            if (party.getLeaderUUID() == leaderUuid) {
                 throw IllegalStateException("Leader $leaderUuid already registered a party")
             }
         }
         val party = Party(leaderUuid)
         parties[party.getPartyUUID()] = party
+        return party.getPartyUUID()
     }
 
-    fun unregisterParty(uuid: UUID) {
-        if (!parties.containsKey(uuid)) {
-            throw IllegalStateException("Party $uuid does not exist")
-        }
-        parties.remove(uuid)
+    fun unregisterParty(playerUUID: UUID) {
+        val party = partyElevatedPrivileges(playerUUID)
+        parties.remove(party.getPartyUUID())
     }
 
-    fun transferLeader(playerUUID: UUID) {
-        if(!playersInParty.containsKey(playerUUID)) {
+    fun transferLeader(playerUUID: UUID, newLeaderUUID: UUID) {
+        val party = partyElevatedPrivileges(playerUUID)
+        party.setLeader(newLeaderUUID)
+    }
+
+    fun partyInfo(playerUUID: UUID): Party {
+        return parties[getPartyUUIDForPlayer(playerUUID)]!!
+    }
+
+    private fun getPartyUUIDForPlayer(playerUUID: UUID): UUID {
+        if (!playerToParty.containsKey(playerUUID)) {
             throw IllegalStateException("Player $playerUUID not in any Party")
         }
-        val party = parties[playersInParty[playerUUID]]!!
-        party.setLeader(playerUUID)
+        return playerToParty[playerUUID]!!
     }
-
 
     @Subscribe
     fun onProxyInitialization(event: ProxyInitializeEvent?) {
+        restServer.start()
     }
 }
