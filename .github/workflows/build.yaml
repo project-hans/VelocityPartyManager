@@ -107,7 +107,9 @@ jobs:
           echo "LOG_LEVEL=INFO" >> .env
 
       - name: Generate Changelog
-        run: python -m changelog_weaver
+        run: |
+          ls -la
+          python -m changelog_weaver
 
       - name: Upload Changelog
         uses: actions/upload-artifact@v4
