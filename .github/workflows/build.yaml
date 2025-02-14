@@ -117,9 +117,9 @@ jobs:
           pip install -r requirements.txt
           python -m changelog_weaver
 
-      - name: Upload Changelog
-        uses: actions/upload-artifact@v4
+      - name: Attach Changelog to Release
+        uses: softprops/action-gh-release@v1
         with:
-          path: Releases/*.md
-          env:
-            GITHUB_TOKEN: ${{ secrets.TOKEN_GH }}
+          files: Releases/*.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GH }}
