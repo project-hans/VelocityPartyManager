@@ -71,7 +71,7 @@ jobs:
       - name: Update release
         uses: EsmerlinJM/gha-release-messages-improved@main
         with:
-          repository: EsmerlinJM/gha-release-messages-improved
+          repository: ${{ github.event.repository.name }}"
           openai_api_key: ${{ secrets.OPENAI_TOKEN }}
           openai_model: 'gpt4o-mini'
           github_token: ${{ secrets.TOKEN_GH }}
