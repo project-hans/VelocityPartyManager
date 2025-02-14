@@ -83,7 +83,6 @@ jobs:
       - name: Get changelog weaver
         run: |
           git clone https://github.com/Hankanman/Changelog-Weaver.git
-          cd Changelog-Weaver
 
       - name: Install dependencies
         run: |
@@ -109,7 +108,7 @@ jobs:
       - name: Generate Changelog
         run: |
           ls -la
-          python -m Changelog-Weaver/changelog_weaver
+          python Changelog-Weaver/changelog_weaver/__main__.py
 
       - name: Upload Changelog
         uses: actions/upload-artifact@v4
