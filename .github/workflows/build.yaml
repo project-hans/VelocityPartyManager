@@ -82,7 +82,7 @@ jobs:
 
       - name: Get changelog weaver
         run: |
-          apt-get install git
+          sudo apt-get install git
           git@github.com:Hankanman/Changelog-Weaver.git
           cd Changelog-Weaver
 
