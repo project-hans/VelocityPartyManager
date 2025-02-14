@@ -22,12 +22,14 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
     private val parties: MutableMap<UUID, Party> = mutableMapOf()
 
     // TODO: get port through config or ENV var
-    private val restServer = RestServer(this, 7000)
+    private val restServer: RestServer
 
     // Map of PlayerUUID to PartyUUID
     private val playerToParty: MutableMap<UUID, UUID> = mutableMapOf()
 
     init {
+        val port: Int = System.getProperty("PARTY_API_PORT").toInt()
+        restServer = RestServer(this, port)
     }
 
     private fun partyElevatedPrivileges(playerUUID: UUID): Party {
@@ -43,10 +45,13 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
         return party
     }
 
-    fun transferParty(playerUUID: UUID, serverAlias: String?) {
+    fun transferParty(playerUUID: UUID, serverAlias: String) {
         val party = partyElevatedPrivileges(playerUUID)
         val uuids = party.getPartyMembers()
-        server.getServer(serverAlias).ifPresent { targetServer: RegisteredServer? ->
+        val instanceFound =
+            server.getServer(serverAlias) ?: throw IllegalStateException("Server $serverAlias doesn't exist")
+
+        instanceFound.ifPresent { targetServer: RegisteredServer? ->
             for (u in uuids) {
                 server.getPlayer(u).ifPresent { player: Player -> player.createConnectionRequest(targetServer) }
             }
@@ -70,10 +75,12 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
         }
         val party = parties[playerToParty[playerUUID]]!!
         party.removeMember(playerUUID)
+
         if (party.getPartyMembers().size == 0) {
             // Works because leader field is still set even with no members
             unregisterParty(playerUUID)
         }
+        playerToParty.remove(playerUUID)
     }
 
     fun registerParty(leaderUuid: UUID): UUID {
@@ -87,6 +94,7 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
         }
         val party = Party(leaderUuid)
         parties[party.getPartyUUID()] = party
+        playerToParty[leaderUuid] = party.getPartyUUID()
         return party.getPartyUUID()
     }
 
@@ -101,7 +109,8 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
     }
 
     fun partyInfo(playerUUID: UUID): Party {
-        return parties[getPartyUUIDForPlayer(playerUUID)]!!
+        val partyUUID = getPartyUUIDForPlayer(playerUUID)
+        return parties[partyUUID]!!
     }
 
     private fun getPartyUUIDForPlayer(playerUUID: UUID): UUID {

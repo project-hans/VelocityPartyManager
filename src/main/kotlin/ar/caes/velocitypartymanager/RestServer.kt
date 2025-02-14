@@ -1,11 +1,15 @@
 package ar.caes.velocitypartymanager
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.javalin.Javalin
 import io.javalin.http.Context
+import io.javalin.json.JavalinJackson
 import java.util.*
 
 class RestServer(private val manager: VelocityPartyManager, private val port: Int) {
-    private var app: Javalin = Javalin.create().start(this.port)
+    private var app: Javalin = Javalin.create { config ->
+        config.jsonMapper(JavalinJackson(ObjectMapper()))
+    }.start(this.port)
 
     fun start() {
         /**
@@ -143,7 +147,9 @@ class RestServer(private val manager: VelocityPartyManager, private val port: In
                 )
                 // serverAlias is optional; it might be null if not provided
                 val serverAlias = ctx.queryParam("serverAlias")
-                manager.transferParty(playerUuid, serverAlias)
+                if (serverAlias != null) {
+                    manager.transferParty(playerUuid, serverAlias)
+                }
                 ctx.status(200).json(mapOf("message" to "Party transfer initiated"))
             } catch (e: Exception) {
                 ctx.status(400).json(mapOf("error" to e.message))

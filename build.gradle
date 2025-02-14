@@ -21,17 +21,23 @@ dependencies {
     annotationProcessor "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
     // ... (other implementation dependencies)
 
+    implementation 'io.javalin:javalin:6.4.0'
+
     // Add this so test sources can resolve Velocity classes:
     testImplementation "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
 
     // Javalin and other dependencies ...
 
+    // Add OkHttp for HTTP calls in tests:
+    testImplementation "com.squareup.okhttp3:okhttp:4.10.0"
+    // Add a simple JSON library:
+    testImplementation 'org.json:json:20231013'
     // Test dependencies:
     testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
     testImplementation "io.mockk:mockk:1.13.2"
-    testImplementation platform("com.konghq:unirest-java-bom:4.4.5")
-    testImplementation "com.konghq:unirest-java-core"
-    testImplementation "com.konghq:unirest-modules-gson"
+    implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.0")
+
 }
 
 

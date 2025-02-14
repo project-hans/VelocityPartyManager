@@ -4,24 +4,42 @@ package ar.caes.velocitypartymanager
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.RegisteredServer
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.slf4j.Logger
 import java.lang.reflect.Field
+import java.net.ServerSocket
 import java.util.*
 
 /**
  * Unit tests for VelocityPartyManager.
  */
 class VelocityPartyManagerTest {
+    private var proxyServer: ProxyServer? = null
+    private var logger: Logger? = null
+
+
+    /**
+     * Helper function to get a free port from the OS.
+     */
+    private fun getFreePort(): Int {
+        ServerSocket(0).use { socket ->
+            return socket.localPort
+        }
+    }
 
     /**
      * Creates a new instance of VelocityPartyManager with a mocked ProxyServer and Logger.
      */
     private fun createManager(): VelocityPartyManager {
-        val proxyServer = mockk<ProxyServer>(relaxed = true)
-        val logger = mockk<org.slf4j.Logger>(relaxed = true)
-        return VelocityPartyManager(proxyServer, logger)
+        proxyServer = mockk<ProxyServer>(relaxed = true)
+        logger = mockk<Logger>(relaxed = true)
+
+        System.setProperty("PARTY_API_PORT", getFreePort().toString())
+        return VelocityPartyManager(proxyServer!!, logger!!)
     }
 
     /**
@@ -30,23 +48,17 @@ class VelocityPartyManagerTest {
      */
     private fun registerAndJoinParty(manager: VelocityPartyManager, leader: UUID): UUID {
         val partyUUID = manager.registerParty(leader)
-        // In order for methods like partyInfo, transferParty, etc. to work,
-        // the leader must be recorded in playerToParty. (Note that registerParty
-        // does not add the leader to the mapping automatically.)
-        manager.joinParty(partyUUID, leader)
         return partyUUID
     }
 
     @Test
-    fun `registerParty should successfully register a new party and allow leader to join`() {
+    fun `registerParty should successfully register a new party and registers the leader as a member`() {
         // given
         val manager = createManager()
         val leader = UUID.randomUUID()
 
         // when
         val partyUUID = manager.registerParty(leader)
-        // Now have the leader join the party.
-        manager.joinParty(partyUUID, leader)
 
         // then
         val party = manager.partyInfo(leader)
@@ -59,8 +71,7 @@ class VelocityPartyManagerTest {
         // given
         val manager = createManager()
         val leader = UUID.randomUUID()
-        val partyUUID = manager.registerParty(leader)
-        manager.joinParty(partyUUID, leader)
+        manager.registerParty(leader)
 
         // when/then
         val exception = assertThrows(IllegalStateException::class.java) {
@@ -89,7 +100,6 @@ class VelocityPartyManagerTest {
         val manager = createManager()
         val leader = UUID.randomUUID()
         val partyUUID = manager.registerParty(leader)
-        manager.joinParty(partyUUID, leader)
 
         // when/then: attempting to join the same party twice for the same player
         val exception = assertThrows(IllegalStateException::class.java) {
@@ -121,7 +131,7 @@ class VelocityPartyManagerTest {
         // given
         val manager = createManager()
         val leader = UUID.randomUUID()
-        val partyUUID = registerAndJoinParty(manager, leader)
+        registerAndJoinParty(manager, leader)
 
         // when: leader leaves (the only member), so the party is unregistered
         manager.leaveParty(leader)
@@ -168,12 +178,9 @@ class VelocityPartyManagerTest {
     @Test
     fun `transferParty should send connection requests to all party members`() {
         // given
-        val proxyServer = mockk<ProxyServer>(relaxed = true)
-        val logger = mockk<org.slf4j.Logger>(relaxed = true)
-        val manager = VelocityPartyManager(proxyServer, logger)
+        val manager = createManager()
         val leader = UUID.randomUUID()
         val partyUUID = manager.registerParty(leader)
-        manager.joinParty(partyUUID, leader)
         val member1 = UUID.randomUUID()
         val member2 = UUID.randomUUID()
         manager.joinParty(partyUUID, member1)
@@ -183,15 +190,15 @@ class VelocityPartyManagerTest {
 
         // Prepare a mock RegisteredServer to be returned by getServer.
         val registeredServer: RegisteredServer = mockk(relaxed = true)
-        every { proxyServer.getServer(serverAlias) } returns Optional.of(registeredServer)
+        every { proxyServer!!.getServer(serverAlias) } returns Optional.of(registeredServer)
 
         // Prepare mocks for players.
         val playerLeader: Player = mockk(relaxed = true)
         val playerMember1: Player = mockk(relaxed = true)
         val playerMember2: Player = mockk(relaxed = true)
-        every { proxyServer.getPlayer(leader) } returns Optional.of(playerLeader)
-        every { proxyServer.getPlayer(member1) } returns Optional.of(playerMember1)
-        every { proxyServer.getPlayer(member2) } returns Optional.of(playerMember2)
+        every { proxyServer!!.getPlayer(leader) } returns Optional.of(playerLeader)
+        every { proxyServer!!.getPlayer(member1) } returns Optional.of(playerMember1)
+        every { proxyServer!!.getPlayer(member2) } returns Optional.of(playerMember2)
 
         // when
         manager.transferParty(leader, serverAlias)
@@ -220,9 +227,7 @@ class VelocityPartyManagerTest {
     @Test
     fun `onProxyInitialization should start the rest server`() {
         // given
-        val proxyServer = mockk<ProxyServer>(relaxed = true)
-        val logger = mockk<org.slf4j.Logger>(relaxed = true)
-        val manager = VelocityPartyManager(proxyServer, logger)
+        val manager = createManager()
 
         // Use reflection to replace the private 'restServer' field with a mock
         val restServerField: Field = manager.javaClass.getDeclaredField("restServer")
