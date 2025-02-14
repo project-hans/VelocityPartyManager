@@ -109,7 +109,7 @@ jobs:
       - name: Generate Changelog
         run: |
           ls -la
-          python -m changelog_weaver
+          python -m Changelog-Weaver/changelog_weaver
 
       - name: Upload Changelog
         uses: actions/upload-artifact@v4
