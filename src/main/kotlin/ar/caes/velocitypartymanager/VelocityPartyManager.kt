@@ -13,6 +13,7 @@ import java.util.*
 @Plugin(
     id = "velocitypartymanager",
     name = "VelocityPartyManager",
+    description = "Party Manager for Velocity, Use a REST client to use the functionality",
     version = BuildConstants.VERSION,
     authors = ["Caesar"]
 )
