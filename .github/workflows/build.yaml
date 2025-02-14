@@ -73,10 +73,10 @@ jobs:
       - build
     steps:
 
+      - uses: actions/checkout@v3
+
       - id: get_previous_tag
         uses: younited/get-previous-tag-action@v1.0.0
-
-      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
