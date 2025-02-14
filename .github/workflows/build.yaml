@@ -63,11 +63,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: VelocityPartyManager
-          path: /build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+          path: build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: /build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+          files: build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
           token: ${{ secrets.TOKEN_GH }}
