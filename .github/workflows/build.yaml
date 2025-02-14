@@ -72,6 +72,10 @@ jobs:
     needs:
       - build
     steps:
+
+      - id: get_previous_tag
+        uses: younited/get-previous-tag-action@v1.0.0
+
       - uses: actions/checkout@v3
 
       - name: Set up Python
@@ -106,8 +110,8 @@ jobs:
           echo "INCLUDE_COMMITS=True" >> .env
           echo "REPO_NAME=${{ github.repository }}" >> .env
           echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> .env
-          echo "FROM_TAG=''" >> .env
-          echo "TO_TAG=''" >> .env
+          echo "FROM_TAG=${{ steps.get_previous_tag.outputs.previous-tag }}" >> .env
+          echo "TO_TAG=${{ github.ref_name }}" >> .env
 
       - name: Generate Changelog
         run: |
