@@ -77,8 +77,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: get_previous_tag
-        uses: younited/get-previous-tag-action@v1.1.0
+      - name: Get Previous tag
+        id: previoustag
+        uses: WyriHaximus/github-action-get-previous-tag@v1.4.0
+        with:
+          fallback: 1.0.0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -112,7 +115,7 @@ jobs:
           echo "INCLUDE_COMMITS=True" >> .env
           echo "REPO_NAME=${{ github.repository }}" >> .env
           echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> .env
-          echo "FROM_TAG=${{ steps.get_previous_tag.outputs.previous-tag }}" >> .env
+          echo "FROM_TAG=${{ steps.previoustag.outputs.tag }}" >> .env
           echo "TO_TAG=${{ github.ref_name }}" >> .env
 
       - name: Generate Changelog
