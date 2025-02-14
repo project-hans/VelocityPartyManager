@@ -57,7 +57,7 @@ jobs:
 
       - name: Rename Release JAR
         run: |
-          mv build/libs/*-all.jar /build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+          mv build/libs/*-all.jar build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
 
       - name: Publish JAR Artifact
         uses: actions/upload-artifact@v4
