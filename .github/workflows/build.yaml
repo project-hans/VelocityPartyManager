@@ -58,16 +58,17 @@ jobs:
       - name: Rename Release JAR
         run: |
           mv build/libs/*-all.jar build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+          ls -ls build/libs
 
       - name: Publish JAR Artifact
         uses: actions/upload-artifact@v4
         with:
           name: VelocityPartyManager
-          path: build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+          path: build/libs/VelocityPartyManager-v*.jar
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+          files: build/libs/VelocityPartyManager-v*.jar
           token: ${{ secrets.TOKEN_GH }}
