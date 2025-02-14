@@ -34,6 +34,7 @@ dependencies {
     testImplementation 'org.json:json:20231013'
     // Test dependencies:
     testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
+
     testImplementation "io.mockk:mockk:1.13.2"
     implementation("org.slf4j:slf4j-simple:2.0.16")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.0")
@@ -81,4 +82,8 @@ rootProject.idea.project.settings.taskTriggers.afterSync generateTemplates
 project.eclipse.synchronizationTasks(generateTemplates)
 kotlin {
     jvmToolchain(17)
+}
+
+jar {
+    from sourceSets.main.output
 }
