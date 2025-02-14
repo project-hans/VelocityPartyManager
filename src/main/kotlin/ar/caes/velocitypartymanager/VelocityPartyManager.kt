@@ -31,7 +31,7 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
     private val playerToParty: MutableMap<UUID, UUID> = mutableMapOf()
 
     init {
-        val port: Int = System.getProperty("PARTY_API_PORT").toInt()
+        val port: Int = System.getProperty("PARTY_API_PORT")?.toInt() ?: 8080
         restServer = RestServer(this, port)
     }
 

@@ -55,15 +55,19 @@ jobs:
       - name: Build with Gradle
         run: gradle build --build-cache
 
+      - name: Rename Release JAR
+        run: |
+          mv build/libs/*-all.jar /build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
+
       - name: Publish JAR Artifact
         uses: actions/upload-artifact@v4
         with:
           name: VelocityPartyManager
-          path: build/libs/*.jar
+          path: /build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: build/libs/*.jar
+          files: /build/libs/VelocityPartyManager-${GITHUB_REF#refs/tags/}.jar
           token: ${{ secrets.TOKEN_GH }}
