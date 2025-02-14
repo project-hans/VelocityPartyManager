@@ -17,13 +17,23 @@ repositories {
 }
 
 dependencies {
-compileOnly "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
+    compileOnly "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
     annotationProcessor "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
-    // Javalin: A lightweight web framework for creating REST endpoints.
-    implementation 'io.javalin:javalin:5.6.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation "com.fasterxml.jackson.core:jackson-core:2.18.2"
+    // ... (other implementation dependencies)
+
+    // Add this so test sources can resolve Velocity classes:
+    testImplementation "com.velocitypowered:velocity-api:3.3.0-SNAPSHOT"
+
+    // Javalin and other dependencies ...
+
+    // Test dependencies:
+    testImplementation "org.junit.jupiter:junit-jupiter:5.9.3"
+    testImplementation "io.mockk:mockk:1.13.2"
+    testImplementation platform("com.konghq:unirest-java-bom:4.4.5")
+    testImplementation "com.konghq:unirest-java-core"
+    testImplementation "com.konghq:unirest-modules-gson"
 }
+
 
 def targetJavaVersion = 17
 java {
@@ -39,6 +49,11 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
     }
+}
+
+// Configure the test task to use JUnit Platform (JUnit 5)
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
 
 def templateSource = file('src/main/templates')

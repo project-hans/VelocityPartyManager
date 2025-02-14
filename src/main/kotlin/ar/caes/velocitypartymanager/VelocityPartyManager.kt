@@ -28,8 +28,6 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
     private val playerToParty: MutableMap<UUID, UUID> = mutableMapOf()
 
     init {
-
-
     }
 
     private fun partyElevatedPrivileges(playerUUID: UUID): Party {
@@ -47,7 +45,7 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
 
     fun transferParty(playerUUID: UUID, serverAlias: String?) {
         val party = partyElevatedPrivileges(playerUUID)
-        val uuids = party.getMembers()
+        val uuids = party.getPartyMembers()
         server.getServer(serverAlias).ifPresent { targetServer: RegisteredServer? ->
             for (u in uuids) {
                 server.getPlayer(u).ifPresent { player: Player -> player.createConnectionRequest(targetServer) }
@@ -72,7 +70,7 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
         }
         val party = parties[playerToParty[playerUUID]]!!
         party.removeMember(playerUUID)
-        if (party.members.size == 0) {
+        if (party.getPartyMembers().size == 0) {
             // Works because leader field is still set even with no members
             unregisterParty(playerUUID)
         }
@@ -99,7 +97,7 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
 
     fun transferLeader(playerUUID: UUID, newLeaderUUID: UUID) {
         val party = partyElevatedPrivileges(playerUUID)
-        party.setLeader(newLeaderUUID)
+        party.setPartyLeader(newLeaderUUID)
     }
 
     fun partyInfo(playerUUID: UUID): Party {

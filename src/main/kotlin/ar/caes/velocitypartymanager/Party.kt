@@ -1,7 +1,6 @@
 package ar.caes.velocitypartymanager
 
 import java.util.*
-import kotlin.collections.ArrayList
 
 class Party(leaderUUID: UUID) {
     var uuid: UUID = UUID.randomUUID()
@@ -11,10 +10,10 @@ class Party(leaderUUID: UUID) {
 
     init {
         addMember(leaderUUID)
-        setLeader(leaderUUID)
+        setPartyLeader(leaderUUID)
     }
 
-    fun setLeader(uuid: UUID) {
+    fun setPartyLeader(uuid: UUID) {
         if (!members.contains(uuid)) {
             throw IllegalArgumentException("UUID $uuid of leader does not exist in member list")
         }
@@ -27,8 +26,8 @@ class Party(leaderUUID: UUID) {
 
     fun getLeaderUUID(): UUID = leader!!
 
-    fun getMembers(): List<UUID> {
-        return ArrayList(members)
+    fun getPartyMembers(): MutableList<UUID> {
+        return members
     }
 
     fun addMember(uuid: UUID) {
@@ -43,7 +42,7 @@ class Party(leaderUUID: UUID) {
             throw IllegalArgumentException("UUID $uuid does not exist in member list")
         }
         members.remove(uuid)
-        if ((leader == uuid) && (members.size > 1)) {
+        if ((leader == uuid) && (members.size >= 1)) {
             leader = members[0]
         }
     }
