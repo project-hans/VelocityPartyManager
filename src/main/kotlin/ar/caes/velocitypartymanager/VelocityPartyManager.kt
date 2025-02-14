@@ -21,7 +21,6 @@ class VelocityPartyManager @Inject constructor(private val server: ProxyServer, 
     // Map of PartyUUID to Party
     private val parties: MutableMap<UUID, Party> = mutableMapOf()
 
-    // TODO: get port through config or ENV var
     private val restServer: RestServer
 
     // Map of PlayerUUID to PartyUUID
