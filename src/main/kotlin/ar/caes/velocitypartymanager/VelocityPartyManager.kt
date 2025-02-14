@@ -10,11 +10,14 @@ import com.velocitypowered.api.proxy.server.RegisteredServer
 import org.slf4j.Logger
 import java.util.*
 
+
 @Plugin(
     id = "velocitypartymanager",
     name = "VelocityPartyManager",
-    description = "Party Manager for Velocity, Use a REST client to use the functionality",
     version = BuildConstants.VERSION,
+    url = "https://github.com/project-hans/VelocityPartyManager",
+    description =
+        "Party Manager for Velocity, Use a REST client to use the functionality",
     authors = ["Caesar"]
 )
 class VelocityPartyManager @Inject constructor(private val server: ProxyServer, private val logger: Logger) {

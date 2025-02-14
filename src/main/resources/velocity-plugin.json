@@ -1,0 +1,10 @@
+{
+  "id": "velocitypartymanager",
+  "version": "1.0-SNAPSHOT",
+  "name": "VelocityPartyManager",
+  "description": "Party Manager for Velocity. Use a REST client to utilize the functionality.",
+  "authors": [
+    "Caesar"
+  ],
+  "main": "ar.caes.velocitypartymanager.VelocityPartyManager"
+}
