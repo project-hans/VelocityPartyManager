@@ -104,6 +104,11 @@ jobs:
           echo "MODEL=gpt-4o-mini" >> .env
           echo "OUTPUT_FOLDER=Releases" >> .env
           echo "LOG_LEVEL=INFO" >> .env
+          echo "INCLUDE_COMMITS=True" >> .env
+          echo "REPO_NAME=${{ github.repository }}" >> .env
+          echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> .env
+          echo "FROM_TAG=''" >> .env
+          echo "TO_TAG=''" >> .env
 
       - name: Generate Changelog
         run: |
