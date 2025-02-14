@@ -60,7 +60,6 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: build/libs/*.jar
 
@@ -79,7 +78,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install Markdown python-dotenv openai azure-devops pygithub aiohttp
 
       - name: Create .env file
         run: |
