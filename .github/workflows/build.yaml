@@ -1,0 +1,115 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Build and Push Lobby Image
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
+      - name: Setup Gradle 8.11
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11
+
+      - name: Cache Gradle wrapper
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/wrapper/
+            ~/.gradle/caches/
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: gradle build --build-cache
+
+      - name: Remove sources artifact
+        run: rm build/libs/*sources.jar
+
+      - name: Publish JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VelocityPartyManager
+          path: build/libs/*.jar
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/libs/*.jar
+
+  generate-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create .env file
+        run: |
+          echo "SOLUTION_NAME=${{ github.repository }}" >> .env
+          echo "RELEASE_VERSION=${{ github.ref_name }}" >> .env
+          echo "SOFTWARE_SUMMARY=Release ${{ github.ref_name }}" >> .env
+          echo "GET_ITEM_SUMMARY=True" >> .env
+          echo "GET_CHANGELOG_SUMMARY=True" >> .env
+          echo "PROJECT_URL=https://github.com/${{ github.repository }}" >> .env
+          echo "QUERY=is:closed" >> .env
+          echo "ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env
+          echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" >> .env
+          echo "MODEL_BASE_URL=https://api.openai.com/v1" >> .env
+          echo "MODEL=gpt-4o-mini" >> .env
+          echo "OUTPUT_FOLDER=Releases" >> .env
+          echo "LOG_LEVEL=INFO" >> .env
+
+      - name: Generate Changelog
+        run: python -m changelog_weaver
+
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v3
+        with:
+          name: changelog
+          path: Releases/*.md
+
+      - name: Attach Changelog to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Releases/*.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
