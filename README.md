@@ -123,3 +123,48 @@ the [GitHub issue tracker](https://github.com/yourusername/VelocityPartyManager/
 ---
 
 *Happy Party Managing!*
+
+## The Idea
+
+```mermaid
+
+flowchart TD
+    
+    TN[Target Node] -- Registers --> RD
+    
+    subgraph Velocity
+        VP[Velocity Plugin] -- Check Availability --> RD[Redis]
+        VP -- Gathers Member --> RD
+        VP -- Transfer Player --> VP
+    end
+    
+    subgraph Node 
+        PL[Party Lead] -- Requests Transfer --> VP
+    end
+    
+
+```
+
+```mermaid
+sequenceDiagram
+    participant PL as Party Leader
+    participant PM as Party Manager GUI
+    participant VL as Velocity
+    participant RD as Redis
+    participant TN as Target Node
+    
+    TN ->>+ VL: Registers every n secs
+    VL ->>+ RD: Saves known nodes with expire
+    PL ->>+ PM: Requests Party transfer
+    PM ->>+ VL: Start Party transfer
+    VL ->>+ RD: Gather Party Members
+    RD ->>+ VL: Responds with Party Members
+    VL ->>+ VL: Validates Party Lead and Members
+    alt Request unauthorized 
+        VL ->>+ PM: Request Denied
+    else Request Valid
+        VL ->>+ PM: Request Approved
+        VL ->>+ VL: Chooses Target Node
+        VL ->>+ VL: Transfers Members
+    end
+```
